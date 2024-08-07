@@ -3,6 +3,7 @@ package sender
 import (
 	"balance-service/config"
 	"balance-service/dto/proto"
+	"balance-service/service/rmq/common"
 	"github.com/google/uuid"
 	"github.com/streadway/amqp"
 	"github.com/stretchr/testify/assert"
@@ -36,6 +37,6 @@ func TestSendMessage(t *testing.T) {
 		Amount:   testAmount,
 	}
 
-	err = sender.Publish(testRoutingKey, testExchange, mes)
+	err = sender.Publish("r.balance-service.unit-test.emit.request", common.BalanceExchange, mes)
 	assert.Nil(t, err)
 }

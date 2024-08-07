@@ -14,6 +14,7 @@ type Consumer struct {
 	qName string
 	rk    string
 	ex    string
+	del   <-chan amqp.Delivery
 }
 
 func New(ch *amqp.Channel, handler handler.Handler, ex, q, rk string) (*Consumer, error) {
@@ -71,9 +72,10 @@ func (c *Consumer) Consume() {
 		false,
 		nil,
 	)
+	c.del = msgs
 
 	go func() {
-		for msg := range msgs {
+		for msg := range c.del {
 			if c.h != nil {
 				if err := c.h.HandleMessage(msg.Body); err != nil {
 					log.Errorf("handler error: %s", err)
@@ -84,27 +86,13 @@ func (c *Consumer) Consume() {
 }
 
 func (c *Consumer) ConsumeByCondition(condition func([]byte) bool, timeout time.Duration) (*amqp.Delivery, error) {
-	msgs, err := c.ch.Consume(
-		c.qName,
-		"",
-		true,
-		false,
-		false,
-		false,
-		nil,
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	timeoutChan := time.After(timeout)
 	for {
 		select {
-		case d := <-msgs:
+		case d := <-c.del:
 			if condition(d.Body) {
 				return &d, nil
 			}
-		case <-timeoutChan:
+		case <-time.After(timeout):
 			return nil, errors.New("timeout waiting for message")
 		}
 	}

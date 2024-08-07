@@ -2,6 +2,8 @@ package handler
 
 import (
 	"balance-service/dto/proto"
+	"balance-service/service/rmq/common"
+	"balance-service/service/rmq/sender"
 	"balance-service/storage/postgres"
 	gitProto "github.com/golang/protobuf/proto"
 	log "github.com/sirupsen/logrus"
@@ -9,11 +11,13 @@ import (
 
 type EmitUserBalanceHandler struct {
 	pgCl *postgres.Client
+	s    *sender.Sender
 }
 
-func NewEmitUserBalanceHandler(pgCl *postgres.Client) *EmitUserBalanceHandler {
+func NewEmitUserBalanceHandler(pgCl *postgres.Client, s *sender.Sender) *EmitUserBalanceHandler {
 	return &EmitUserBalanceHandler{
 		pgCl: pgCl,
+		s:    s,
 	}
 }
 
@@ -25,13 +29,39 @@ func (h *EmitUserBalanceHandler) HandleMessage(msg []byte) error {
 	if err != nil {
 		return err
 	}
-	log.Info("request unmarshal successfully")
+	log.Infof("request (id: %v) unmarshal successfully", req.Id)
 
 	err = h.pgCl.UpdateUserBalance(req.UserId, req.Currency, req.Amount, 0)
 	if err != nil {
 		return err
 	}
 
+	balances, err := h.pgCl.GetBalanceByUserId(req.UserId)
+	if err != nil {
+		return err
+	}
+
+	balance := &proto.Balance{}
+	for _, bal := range balances {
+		if bal.Currency.Name == req.Currency {
+			balance = &proto.Balance{
+				Currency:      bal.Currency.Name,
+				Balance:       float64(bal.Balance),
+				LockedBalance: float64(bal.LockedBalance),
+				UpdatedDate:   bal.UpdatedAt,
+			}
+			break
+		}
+	}
+
+	resp := &proto.UserBalance{
+		UserId: req.UserId,
+		Balances: []*proto.Balance{
+			balance,
+		},
+	}
+
+	err = h.s.Publish(common.EmitRespRouting, common.BalanceExchange, resp)
 	log.Info("handler emit user balance successfully")
 	return nil
 }

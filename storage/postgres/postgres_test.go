@@ -43,7 +43,8 @@ func TestCreateBalance(t *testing.T) {
 	dbCl, err := New(&cfg.PostgresConfig)
 	assert.Nil(t, err)
 
-	actual := dbCl.GetBalanceByUserId(testUserId)
+	actual, err := dbCl.GetBalanceByUserId(testUserId)
+	assert.Nil(t, err)
 	log.Infof("Got user balances: %v", actual)
 	assert.Equal(t, actual, expected)
 }
@@ -58,6 +59,7 @@ func TestUpdateBalance(t *testing.T) {
 	err = dbCl.UpdateUserBalance(testUserId, "UAH", 20255.4, 12000.17)
 	assert.Nil(t, err)
 
-	actual := dbCl.GetBalanceByUserId(testUserId)
+	actual, err := dbCl.GetBalanceByUserId(testUserId)
+	assert.Nil(t, err)
 	log.Infof("get user balances: %v", actual)
 }
