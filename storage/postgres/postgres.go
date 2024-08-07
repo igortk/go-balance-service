@@ -3,6 +3,7 @@ package postgres
 import (
 	"balance-service/config"
 	"balance-service/dto"
+	log "github.com/sirupsen/logrus"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"time"
@@ -17,6 +18,7 @@ type Client struct {
 }
 
 func New(cfg *config.PostgresConfig) (*Client, error) {
+	log.Info("creating new pg client...")
 	db, err := gorm.Open(postgres.Open(cfg.Dsn), &gorm.Config{})
 
 	if err != nil {

@@ -21,6 +21,8 @@ type Server struct {
 }
 
 func New(cfg *config.Config) (*Server, error) {
+	log.Info("creating new server...")
+
 	pgCl, err := postgres.New(&cfg.PostgresConfig)
 
 	conn, err := amqp.Dial(cfg.RabbitMqConfig.Url)
@@ -47,6 +49,8 @@ func (s *Server) Init() {
 }
 
 func (s *Server) Run() {
+	log.Info("starting consumers...")
+
 	for _, csm := range s.rmqCls {
 		csm.C.Consume()
 	}

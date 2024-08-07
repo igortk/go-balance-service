@@ -5,6 +5,7 @@ import (
 	"balance-service/service/rmq/handler"
 	"balance-service/service/rmq/sender"
 	gitProto "github.com/golang/protobuf/proto"
+	log "github.com/sirupsen/logrus"
 	"time"
 )
 
@@ -21,6 +22,7 @@ type Client struct {
 }
 
 func New(c *consumer.Consumer, h handler.Handler, s *sender.Sender) *Client {
+	log.Info("creating new rmq client...")
 	return &Client{
 		C: c,
 		H: h,

@@ -19,4 +19,6 @@ func main() {
 
 	svr.Init()
 	svr.Run()
+
+	log.Info("stopping service...")
 }

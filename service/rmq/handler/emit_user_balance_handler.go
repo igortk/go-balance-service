@@ -15,6 +15,7 @@ type EmitUserBalanceHandler struct {
 }
 
 func NewEmitUserBalanceHandler(pgCl *postgres.Client, s *sender.Sender) *EmitUserBalanceHandler {
+	log.Info("creating new emit user balance handler...")
 	return &EmitUserBalanceHandler{
 		pgCl: pgCl,
 		s:    s,

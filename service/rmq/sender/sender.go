@@ -2,6 +2,7 @@ package sender
 
 import (
 	"github.com/golang/protobuf/proto"
+	log "github.com/sirupsen/logrus"
 	"github.com/streadway/amqp"
 )
 
@@ -16,6 +17,7 @@ func New(ch *amqp.Channel) *Sender {
 }
 
 func (s *Sender) Publish(rk, ex string, msg proto.Message) error {
+	log.Info("creating new sender...")
 	body, err := proto.Marshal(msg)
 	if err != nil {
 		return err

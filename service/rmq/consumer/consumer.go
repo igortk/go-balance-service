@@ -18,6 +18,7 @@ type Consumer struct {
 }
 
 func New(ch *amqp.Channel, handler handler.Handler, ex, q, rk string) (*Consumer, error) {
+	log.Info("creating new consumer...")
 	err := ch.ExchangeDeclare(
 		ex,
 		amqp.ExchangeTopic,
